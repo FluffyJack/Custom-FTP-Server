@@ -1,14 +1,28 @@
 h1. Custom FTP Server
 
-h2. A FTP Server running on ruby that can be customised to respond to FTP calls however seen fit
+h2. Ruby based Customisable FTP Server
 
 This is a new project I am working on as part of a larger project, but I saw lots of use for this in the open-source community and hope for it to be a goto solution for people trying to achieve a similar solution.
 
-**Custom FTP Server** will be a ruby base FTP server solution that will allow you to customise how **you** want to respond to certain FTP requests, allowing you to customise the whole range of FTP functions.
+**Custom FTP Server** is a ruby based implementation of an FTP server that adheres to RFC 959. The great thing about it being written in ruby, is that you can customise how each command works and responds, giving you complete control over the FTP access.
 
-Right now, I haven't even gotten started on this, I'm just putting up a GitHub repository so people can watch, which you really should, it should end up working pretty well, and be a good solution for any time you want to customise how a FTP server should act, or if you just want a small simple FTP server to use.
+At the moment it's in it's very early stages. I've got it working locally, running most commands that are used regularly.
 
-Two example I plan to make during testing are:
+There is still some things left to do though.
+
+h2. To Do List
+
+* Needs a function for creating directories
+* Need to work out the difference between passive and active and then implement both
+* Add the ability to define a root directory
+* Make configurable through a YAML file
+* Move FTP commands to a external file
+* Test on a server
+* Test with other FTP clients
+
+h2. Examples
+
+Two examples I plan to make during testing are:
 
 **Example 1** - Rackspace CloudFiles interface
 
@@ -31,4 +45,4 @@ h2. Yes there are libraries like this out there
 
 But they are not update regularly, and look pretty overly complicated, code is messy, etc. etc.
 
-This is why I am making my own, so I can make it available to the world for use, if anyone finds a use (I have a good one in mind, that's why I want to make it so bad)
+This is why I am making my own, so I can make it available to the world for use, if anyone finds a use... (I have a good one in mind, that's why I want to make it)
