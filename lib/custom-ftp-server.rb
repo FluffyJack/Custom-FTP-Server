@@ -100,8 +100,8 @@ class CustomFTPServer
       
       begin
         command = request[0,4].downcase.strip
-        rqarray = request.split
-        message = rqarray.length > 2 ? rqarray[1..rqarray.length] : rqarray[1]
+        rqarray = request.split(' ')
+        message = rqarray.length > 2 ? rqarray[1..rqarray.length].join(' ') : rqarray[1]
         case command
           when *COMMANDS
             __send__ command, message
@@ -112,8 +112,6 @@ class CustomFTPServer
         "553 Permission denied"
       rescue Errno::ENOENT
         "553 File doesn't exist"
-      rescue TypeError
-        "533 File names can not contain spaces"
       rescue Exception => e
         "500 Server Error: #{e.class}: #{e.message} - \n\t#{e.backtrace[0]}"
       end
