@@ -1,10 +1,15 @@
 %w[socket logger optparse ostruct].each  { |f| require f }
 
+Thread.abort_on_exception = true
+
 class CustomFTPServer
   VERSION = '0.0.1'
   
   # FTP says this is the end of a line
   LNBR = "\r\n"
+
+  # Supported Commands - Currently only minimum RFC 959 commands
+  %w[user quit port type mode stru retr stor noop]
 
   # Parse Options, Open a server, and look out for shut down
   def initialize(arguments)
@@ -42,20 +47,103 @@ class CustomFTPServer
     puts "To shut down server press ctrl+c"
     
     @status = :alive
+    @threads = []
+    
+    kill_dead_connections
     
     while (@status == :alive)
       
-      Thread.start(@server.accept) do |session|
-        
-        
-        
-      end
+        begin
+          session = @server.accept
+          @threads << new_connection_thread(session)
+        rescue Interrupt
+          @status = :dead
+        rescue Exception => ex
+          @status = :dead
+          puts "#{ex.class}: #{ex.message} - #{request}\n\t#{ex.backtrace[0]}"
+          exit(0)
+        end
 
     end
       
   end
   
   protected
+  
+    # Creates a new thread for people to work on
+    def new_connection_thread(session)
+      Thread.new(session) do |session|
+        thread[:session] = session
+        thread[:mode] = :ascii
+        client_info = session.peeraddr
+        thread[:addr] = [client_info[1], client_info[3]]
+        response "220 Connection Established"
+        
+        # listen for commands
+        while session.nil? == false and session.closed? == false
+          request = session.gets
+          response handler(request)
+        end
+        
+      end
+    end
+    
+    # call commands and return the response to the client
+    def handler(request)
+      thread[:stamp] = Time.now
+      return if request.nil? or request.to_s == ''
+      
+      begin
+        command = request[0,4].downcase.strip
+        rqarray = request.split
+        message = rqarray.length > 2 ? rqarray[1..rqarray.length] : rqarray[1]
+        case command
+          when *COMMANDS
+            __send__ command, message
+          else
+            bad_command command, message
+        end
+      rescue Errno::EACCES, Errno::EPERM
+        "553 Permission denied"
+      rescue Errno::ENOENT
+        "553 File doesn't exist"
+      rescue Exception => ex
+        "500 Server Error: #{e.message}"
+      end
+      
+    end
+  
+    # Send data back to the client
+    def response(msg)
+      session = thread[:session]
+      session.print msg << LNBR unless msg.nil? or session.nil? or session.closed?
+      session.print "500 Server Error" if msg.nil?
+    end
+  
+    # periodically kill inactive connections
+    def kill_dead_connections
+      Thread.new do
+        loop do
+          @threads.delete_if do |t|
+            if Time.now - t[:stamp] > 400
+              t[:session].close
+              t.kill
+              debug "Killed inactive connection."
+              true
+            end
+          end
+          sleep 20
+        end
+      end    
+    end
+    
+    # Returns current thread
+    def thread; Thread.current end
+    
+    # command not understood
+    def bad_command(name, *params)
+      "502 Command not implemented"
+    end
   
     # Parse the option passed through the command line
     def parse_options
