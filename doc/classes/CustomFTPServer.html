@@ -92,6 +92,7 @@
       <a href="#M000004">handler</a>&nbsp;&nbsp;
       <a href="#M000006">kill_dead_connections</a>&nbsp;&nbsp;
       <a href="#M000023">list</a>&nbsp;&nbsp;
+      <a href="#M000029">mkd</a>&nbsp;&nbsp;
       <a href="#M000017">mode</a>&nbsp;&nbsp;
       <a href="#M000001">new</a>&nbsp;&nbsp;
       <a href="#M000003">new_connection_thread</a>&nbsp;&nbsp;
@@ -148,7 +149,7 @@ FTP says this is the end of a line
         <tr class="top-aligned-row context-row">
           <td class="context-item-name">COMMANDS</td>
           <td>=</td>
-          <td class="context-item-value">%w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd]</td>
+          <td class="context-item-value">%w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd]</td>
           <td width="3em">&nbsp;</td>
           <td class="context-item-desc">
 Supported Commands
@@ -289,7 +290,7 @@ command not understood
             onclick="toggleCode('M000008-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000008-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 149</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 151</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bad_command</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">params</span>)
       <span class="ruby-value str">&quot;502 Command not implemented&quot;</span>
     <span class="ruby-keyword kw">end</span>
@@ -315,7 +316,7 @@ CWD - msg = pathname
             onclick="toggleCode('M000026-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000026-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 293</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 295</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cwd</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-keyword kw">begin</span>
         <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-identifier">msg</span>)
@@ -347,7 +348,7 @@ DELE - msg = pathname
             onclick="toggleCode('M000027-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000027-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 304</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 306</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">dele</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-identifier">rmd</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -391,8 +392,10 @@ href="CustomFTPServer.html#M000005">response</a> to the client
         <span class="ruby-value str">&quot;553 Permission denied&quot;</span>
       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>
         <span class="ruby-value str">&quot;553 File doesn't exist&quot;</span>
+      <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">TypeError</span>
+        <span class="ruby-value str">&quot;533 File names can not contain spaces&quot;</span>
       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
-        <span class="ruby-node">&quot;500 Server Error: #{e.message}&quot;</span>
+        <span class="ruby-node">&quot;500 Server Error: #{e.class}: #{e.message} - \n\t#{e.backtrace[0]}&quot;</span>
       <span class="ruby-keyword kw">end</span>
       
     <span class="ruby-keyword kw">end</span>
@@ -418,7 +421,7 @@ periodically kill inactive connections
             onclick="toggleCode('M000006-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000006-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 129</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 131</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">kill_dead_connections</span>
       <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">do</span>
         <span class="ruby-identifier">loop</span> <span class="ruby-keyword kw">do</span>
@@ -456,11 +459,38 @@ LIST - msg = nil
             onclick="toggleCode('M000023-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000023-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 276</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 278</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">list</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;125 Opening ASCII mode data connection for file list&quot;</span>
       <span class="ruby-identifier">send_data</span>(<span class="ruby-value">`ls -l`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">join</span>(<span class="ruby-constant">LNBR</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">LNBR</span>)
       <span class="ruby-value str">&quot;226 Transfer complete&quot;</span>
+    <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000029" class="method-detail">
+        <a name="M000029"></a>
+
+        <div class="method-heading">
+          <a href="#M000029" class="method-signature">
+          <span class="method-name">mkd</span><span class="method-args">(msg)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+MKD - msg = pathname
+</p>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000029-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000029-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 319</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mkd</span>(<span class="ruby-identifier">msg</span>)
+      <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">msg</span>)
+      <span class="ruby-node">&quot;257 #{msg} created&quot;</span>
     <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -484,7 +514,7 @@ MODE - msg = <a href="CustomFTPServer.html#M000017">mode</a>-code
             onclick="toggleCode('M000017-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000017-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 247</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 249</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mode</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-value str">&quot;202 Only accepts stream&quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -552,7 +582,7 @@ NLST - msg = nil
             onclick="toggleCode('M000024-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000024-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 283</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 285</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">nlst</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-constant">Dir</span>[<span class="ruby-value str">&quot;*&quot;</span>].<span class="ruby-identifier">join</span> <span class="ruby-value str">&quot; &quot;</span>   
     <span class="ruby-keyword kw">end</span>
@@ -578,7 +608,7 @@ NOOP - msg = nil
             onclick="toggleCode('M000021-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000021-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 270</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 272</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">noop</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-value str">&quot;200 &quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -603,7 +633,7 @@ version
             onclick="toggleCode('M000010-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000010-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 168</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 170</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">output_version</span>
       <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;#{File.basename(__FILE__)} version #{VERSION}&quot;</span>
     <span class="ruby-keyword kw">end</span>
@@ -629,7 +659,7 @@ Parse the option passed through the command line
             onclick="toggleCode('M000009-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000009-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 154</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 156</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_options</span>
       
       <span class="ruby-comment cmt"># Specify options</span>
@@ -664,7 +694,7 @@ PASS - msg = password
             onclick="toggleCode('M000013-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000013-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 209</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 211</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pass</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;530 Password is incorrect&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">'password'</span>
       <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:pass</span>] = <span class="ruby-identifier">msg</span>
@@ -693,7 +723,7 @@ href="CustomFTPServer.html#M000015">port</a> details
             onclick="toggleCode('M000015-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000015-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 223</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 225</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">port</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">nums</span> = <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">','</span>)
       <span class="ruby-identifier">port</span> = <span class="ruby-identifier">nums</span>[<span class="ruby-value">4</span>].<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-value">256</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">nums</span>[<span class="ruby-value">5</span>].<span class="ruby-identifier">to_i</span>
@@ -727,7 +757,7 @@ PWD - msg = nil
             onclick="toggleCode('M000025-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000025-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 288</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 290</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pwd</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-node">%[257 &quot;#{Dir.pwd}&quot; is the current directory]</span>
     <span class="ruby-keyword kw">end</span>
@@ -753,7 +783,7 @@ QUIT - msg = nil
             onclick="toggleCode('M000014-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000014-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 216</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 218</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">quit</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>].<span class="ruby-identifier">close</span>
       <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>] = <span class="ruby-keyword kw">nil</span>
@@ -781,7 +811,7 @@ Send data back to the client
             onclick="toggleCode('M000005-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000005-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 122</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 124</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">response</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">session</span> = <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>]
       <span class="ruby-identifier">session</span>.<span class="ruby-identifier">print</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">LNBR</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">session</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">session</span>.<span class="ruby-identifier">closed?</span>
@@ -809,7 +839,7 @@ RETR - msg = pathname
             onclick="toggleCode('M000019-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000019-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 253</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 255</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">retr</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;125 Data transfer starting&quot;</span>
       <span class="ruby-identifier">bytes</span> = <span class="ruby-identifier">send_data</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">msg</span>, <span class="ruby-value str">'r'</span>))
@@ -837,7 +867,7 @@ RMD - msg = pathname (also runs DELE code)
             onclick="toggleCode('M000028-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000028-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 307</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 309</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rmd</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span> <span class="ruby-identifier">msg</span>
         <span class="ruby-constant">Dir</span><span class="ruby-operator">::</span><span class="ruby-identifier">delete</span> <span class="ruby-identifier">msg</span>
@@ -868,7 +898,7 @@ send data over a connection
             onclick="toggleCode('M000011-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000011-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 173</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 175</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">send_data</span>(<span class="ruby-identifier">data</span>)
       <span class="ruby-identifier">bytes</span> = <span class="ruby-value">0</span>
       <span class="ruby-keyword kw">begin</span>
@@ -912,7 +942,7 @@ STOR - msg = pathname
             onclick="toggleCode('M000020-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000020-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 260</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 262</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stor</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">file</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">msg</span>, <span class="ruby-value str">'w'</span>)
       <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;125 Data transfer starting&quot;</span>
@@ -943,7 +973,7 @@ STRU - msg = structure code
             onclick="toggleCode('M000018-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000018-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 250</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 252</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stru</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-value str">&quot;202 Only accepts file&quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -967,7 +997,7 @@ SYST - msg = nil
             onclick="toggleCode('M000022-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000022-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 273</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 275</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">syst</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-node">&quot;215 FluffyJack's Custom FTP Server v#{VERSION}&quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -991,7 +1021,7 @@ Returns current <a href="CustomFTPServer.html#M000007">thread</a>
             onclick="toggleCode('M000007-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000007-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 146</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 148</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">thread</span>; <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -1016,7 +1046,7 @@ TYPE - msg = <a href="CustomFTPServer.html#M000016">type</a> (A = ascii, I
             onclick="toggleCode('M000016-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000016-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 236</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 238</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">type</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">msg</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'A'</span>)
         <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:mode</span>] = <span class="ruby-identifier">:ascii</span>
@@ -1048,7 +1078,7 @@ USER - msg = username
             onclick="toggleCode('M000012-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000012-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 202</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 204</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">user</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;530 Username is incorrect&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">'fluffyjack'</span>
       <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:user</span>] = <span class="ruby-identifier">msg</span>

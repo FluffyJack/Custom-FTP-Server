@@ -9,7 +9,7 @@ class CustomFTPServer
   LNBR = "\r\n"
 
   # Supported Commands
-  COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd]
+  COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd]
 
   # Parse Options, Open a server, and look out for shut down
   def initialize(arguments)
@@ -112,8 +112,10 @@ class CustomFTPServer
         "553 Permission denied"
       rescue Errno::ENOENT
         "553 File doesn't exist"
+      rescue TypeError
+        "533 File names can not contain spaces"
       rescue Exception => e
-        "500 Server Error: #{e.message}"
+        "500 Server Error: #{e.class}: #{e.message} - \n\t#{e.backtrace[0]}"
       end
       
     end
@@ -311,6 +313,12 @@ class CustomFTPServer
         File::delete msg
       end
       "200 OK, deleted #{msg}"
+    end
+    
+    # MKD - msg = pathname
+    def mkd(msg)
+      Dir.mkdir(msg)
+      "257 #{msg} created"
     end
     
 end

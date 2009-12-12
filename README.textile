@@ -12,7 +12,7 @@ There is still some things left to do though.
 
 h2. To Do List
 
-* Needs a function for creating directories
+* Can't use file names with spaces - MUST FIX
 * Need to work out the difference between passive and active and then implement both
 * Add the ability to define a root directory
 * Make configurable through a YAML file
