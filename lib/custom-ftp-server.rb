@@ -5,9 +5,6 @@ Thread.abort_on_exception = true
 class CustomFTPServer
   VERSION = '0.1.1'
 
-  # Supported Commands
-  COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd]
-
   # Parse Options, Open a server, and look out for shut down
   def initialize(arguments)
     @arguments = arguments
