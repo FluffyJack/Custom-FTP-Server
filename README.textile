@@ -15,7 +15,6 @@ h2. To Do List
 * Need to work out the difference between passive and active and then implement both
 * Add the ability to define a root directory
 * Make configurable through a YAML file
-* Move FTP commands to a external file
 * Test on a server
 * Test with other FTP clients
 

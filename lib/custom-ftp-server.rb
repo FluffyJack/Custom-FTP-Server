@@ -1,12 +1,9 @@
-%w[socket logger optparse ostruct functions.rb].each  { |f| require f }
+%w[socket logger optparse ostruct lib/functions.rb].each  { |f| require f }
 
 Thread.abort_on_exception = true
 
 class CustomFTPServer
   VERSION = '0.1.1'
-  
-  # FTP says this is the end of a line
-  LNBR = "\r\n"
 
   # Supported Commands
   COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd]
