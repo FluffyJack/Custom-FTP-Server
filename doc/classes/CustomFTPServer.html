@@ -375,7 +375,7 @@ href="CustomFTPServer.html#M000007">thread</a> for people to work on
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">new_connection_thread</span>(<span class="ruby-identifier">session</span>)
       <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">session</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">session</span><span class="ruby-operator">|</span>
         <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>] = <span class="ruby-identifier">session</span>
-        <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:mode</span>] = <span class="ruby-identifier">:ascii</span>
+        <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:mode</span>] = <span class="ruby-identifier">:binary</span>
         <span class="ruby-identifier">client_info</span> = <span class="ruby-identifier">session</span>.<span class="ruby-identifier">peeraddr</span>
         <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:addr</span>] = [<span class="ruby-identifier">client_info</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">client_info</span>[<span class="ruby-value">3</span>]]
         <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;220 Connection Established&quot;</span>
@@ -512,6 +512,7 @@ send data over a connection
           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:mode</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">:binary</span>
             <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:datasocket</span>].<span class="ruby-identifier">syswrite</span>(<span class="ruby-identifier">line</span>)
           <span class="ruby-keyword kw">else</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-identifier">line</span>
             <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:datasocket</span>].<span class="ruby-identifier">send</span>(<span class="ruby-identifier">line</span>, <span class="ruby-value">0</span>)
           <span class="ruby-keyword kw">end</span>
           <span class="ruby-identifier">bytes</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">line</span>.<span class="ruby-identifier">length</span>
@@ -522,7 +523,7 @@ send data over a connection
         <span class="ruby-comment cmt"># do nothing</span>
       <span class="ruby-keyword kw">ensure</span>
         <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:datasocket</span>].<span class="ruby-identifier">close</span>
-        <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:datasocket</span>] = <span class="ruby-keyword kw">nil</span>    
+        <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:datasocket</span>] = <span class="ruby-keyword kw">nil</span> 
       <span class="ruby-keyword kw">end</span>
       <span class="ruby-identifier">bytes</span>
     <span class="ruby-keyword kw">end</span>

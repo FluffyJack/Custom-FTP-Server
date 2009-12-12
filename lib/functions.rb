@@ -4,7 +4,7 @@ module CustomFTPServerFunctions
   LNBR = "\r\n"
   
   # Supported Commands
-  COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd]
+  COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd rnfr rnto]
   
   # USER - msg = username
   def user(msg)
@@ -136,6 +136,19 @@ module CustomFTPServerFunctions
   def mkd(msg)
     Dir.mkdir(msg)
     "257 #{msg} created"
+  end
+  
+  # RNFR - msg = pathname
+  def rnfr(msg)
+    thread[:rnfr] = msg
+    "350 Awating RNTO for file"
+  end
+  
+  # RNTO - msg = new pathname
+  def rnto(msg)
+    File.rename(thread[:rnfr], msg)
+    thread[:rnfr] = nil
+    "250 File renamed to #{msg}"
   end
   
 end

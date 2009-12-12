@@ -14,6 +14,9 @@ h2. To Do List
 
 * Need to work out the difference between passive and active and then implement both
 * Add the ability to define a root directory
+* Has issues with larger files
+* Create all PFC 959 commands
+* Add all commands from RFC 959 extensions RFC 2228, RFC 3659, and RFC 4217
 * Test on a server
 * Test with other FTP clients
 
