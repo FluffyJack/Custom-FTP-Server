@@ -1,4 +1,4 @@
-%w[socket logger optparse ostruct lib/functions.rb].each  { |f| require f }
+%w[socket optparse ostruct lib/functions.rb].each  { |f| require f }
 
 Thread.abort_on_exception = true
 
@@ -69,7 +69,7 @@ class CustomFTPServer
     def new_connection_thread(session)
       Thread.new(session) do |session|
         thread[:session] = session
-        thread[:mode] = :ascii
+        thread[:mode] = :binary
         client_info = session.peeraddr
         thread[:addr] = [client_info[1], client_info[3]]
         response "220 Connection Established"
@@ -171,6 +171,7 @@ class CustomFTPServer
           if thread[:mode] == :binary
             thread[:datasocket].syswrite(line)
           else
+            puts line
             thread[:datasocket].send(line, 0)
           end
           bytes += line.length
@@ -181,7 +182,7 @@ class CustomFTPServer
         # do nothing
       ensure
         thread[:datasocket].close
-        thread[:datasocket] = nil    
+        thread[:datasocket] = nil 
       end
       bytes
     end

@@ -68,10 +68,11 @@ module CustomFTPServerFunctions
   def stor(msg)
     file = File.new(msg, 'w')
     response "125 Data transfer starting"
-    data = thread[:datasocket].recv(1024)
-    bytes = data.length
+    bytes = 0
+    data = thread[:datasocket].recvfrom(1024)
+    bytes += data.length
     file.write data
-    "200 OK, received #{bytes} bytes"    
+    "226 Files recieved - total bytes #{bytes}"
   end
   
   # NOOP - msg = nil
@@ -83,7 +84,17 @@ module CustomFTPServerFunctions
   # LIST - msg = nil
   def list(msg)
     response "125 Opening ASCII mode data connection for file list"
+    
+    # Dir["*"].each do |entry|
+    #   file_data[] = ""
+    #   
+    #   data_lines[] = file_data.join(' ')
+    # end
+    # 
+    # send_data(data_lines.join(LNBR) << LNBR)
+    
     send_data(`ls -l`.split("\n").join(LNBR) << LNBR)
+    
     "226 Transfer complete"
   end
 
