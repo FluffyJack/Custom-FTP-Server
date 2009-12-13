@@ -15,6 +15,7 @@
 #   --port              Set a port to use
 #   --host              Set a host to use
 #   --root              Set a root directory to use
+#   --timeout           Set the amount of time before a connection times outs
 #
 # == Author
 #   FluffyJack - Jack Dean Watson-Hamblin

@@ -39,7 +39,6 @@ class CustomFTPServer
   #   
   #++
   
-  
   VERSION = '0.1.4'
 
   # == Creates a CustomFTPServer
@@ -56,6 +55,7 @@ class CustomFTPServer
     @options.host = "127.0.0.1"
     @options.port = 21
     @options.root = "/"
+    @options.timeout = 100
     
     # Set custom options
     parse_options
@@ -174,7 +174,7 @@ class CustomFTPServer
       Thread.new do
         loop do
           @threads.delete_if do |t|
-            if ((Time.now.to_i - t[:stamp].to_i) > 5)
+            if ((Time.now.to_i - t[:stamp].to_i) > @options.timeout)
               t[:session].print "421 Connection Timed Out - open a new connection" << LNBR
               t.kill
               t = nil
@@ -183,7 +183,7 @@ class CustomFTPServer
           end
           puts "Open Threads in @threads: " + @threads.inspect
           puts "Open Threads: " + Thread.list.inspect
-          sleep 2
+          sleep (@options.timeout / 5)
         end
       end    
     end
@@ -205,6 +205,7 @@ class CustomFTPServer
       opts.on('--host HOST')        { |host| @options.host = host; }
       opts.on('--port PORT')        { |port| @options.port = port; }
       opts.on('--root ROOT')        { |root| @options.root = root; }
+      opts.on('--timeout TIMEOUT')        { |timeout| @options.timeout = timeout; }
             
       opts.parse!(@arguments) rescue return false
       

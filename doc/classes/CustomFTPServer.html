@@ -163,7 +163,7 @@
             onclick="toggleCode('M000001-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000001-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 52</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 50</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">arguments</span>)
     <span class="ruby-ivar">@arguments</span> = <span class="ruby-identifier">arguments</span>
     
@@ -172,6 +172,7 @@
     <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">host</span> = <span class="ruby-value str">&quot;127.0.0.1&quot;</span>
     <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">port</span> = <span class="ruby-value">21</span>
     <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">root</span> = <span class="ruby-value str">&quot;/&quot;</span>
+    <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">timeout</span> = <span class="ruby-value">100</span>
     
     <span class="ruby-comment cmt"># Set custom options</span>
     <span class="ruby-identifier">parse_options</span>
@@ -219,7 +220,7 @@
             onclick="toggleCode('M000002-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000002-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 86</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 85</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">run</span>
     
     <span class="ruby-comment cmt"># Explain how to shut down server</span>
@@ -272,7 +273,7 @@ Command not understood
             onclick="toggleCode('M000008-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000008-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 196</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 195</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bad_command</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">params</span>)
       <span class="ruby-value str">&quot;502 Command not implemented&quot;</span>
     <span class="ruby-keyword kw">end</span>
@@ -299,7 +300,7 @@ href="CustomFTPServer.html#M000005">response</a> to the client
             onclick="toggleCode('M000004-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000004-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 140</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 139</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handler</span>(<span class="ruby-identifier">request</span>)
       <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:stamp</span>] = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">request</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">request</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-value str">''</span>
@@ -347,12 +348,12 @@ Periodically kill inactive connections
             onclick="toggleCode('M000006-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000006-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 174</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 173</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">kill_dead_connections</span>
       <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">do</span>
         <span class="ruby-identifier">loop</span> <span class="ruby-keyword kw">do</span>
           <span class="ruby-ivar">@threads</span>.<span class="ruby-identifier">delete_if</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">t</span><span class="ruby-operator">|</span>
-            <span class="ruby-keyword kw">if</span> ((<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">t</span>[<span class="ruby-identifier">:stamp</span>].<span class="ruby-identifier">to_i</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-value">5</span>)
+            <span class="ruby-keyword kw">if</span> ((<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">t</span>[<span class="ruby-identifier">:stamp</span>].<span class="ruby-identifier">to_i</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">timeout</span>)
               <span class="ruby-identifier">t</span>[<span class="ruby-identifier">:session</span>].<span class="ruby-identifier">print</span> <span class="ruby-value str">&quot;421 Connection Timed Out - open a new connection&quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">LNBR</span>
               <span class="ruby-identifier">t</span>.<span class="ruby-identifier">kill</span>
               <span class="ruby-identifier">t</span> = <span class="ruby-keyword kw">nil</span>
@@ -361,7 +362,7 @@ Periodically kill inactive connections
           <span class="ruby-keyword kw">end</span>
           <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;Open Threads in @threads: &quot;</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@threads</span>.<span class="ruby-identifier">inspect</span>
           <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;Open Threads: &quot;</span> <span class="ruby-operator">+</span> <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">list</span>.<span class="ruby-identifier">inspect</span>
-          <span class="ruby-identifier">sleep</span> <span class="ruby-value">2</span>
+          <span class="ruby-identifier">sleep</span> (<span class="ruby-ivar">@options</span>.<span class="ruby-identifier">timeout</span> <span class="ruby-operator">/</span> <span class="ruby-value">5</span>)
         <span class="ruby-keyword kw">end</span>
       <span class="ruby-keyword kw">end</span>    
     <span class="ruby-keyword kw">end</span>
@@ -388,7 +389,7 @@ href="CustomFTPServer.html#M000007">thread</a> for people to work on
             onclick="toggleCode('M000003-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000003-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 118</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 117</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">new_connection_thread</span>(<span class="ruby-identifier">session</span>)
       <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">session</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">session</span><span class="ruby-operator">|</span>
         <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>] = <span class="ruby-identifier">session</span>
@@ -458,7 +459,7 @@ Parse the option passed through the command line
             onclick="toggleCode('M000009-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000009-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 201</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 200</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_options</span>
       
       <span class="ruby-comment cmt"># Specify options</span>
@@ -467,6 +468,7 @@ Parse the option passed through the command line
       <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">'--host HOST'</span>)        { <span class="ruby-operator">|</span><span class="ruby-identifier">host</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">host</span> = <span class="ruby-identifier">host</span>; }
       <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">'--port PORT'</span>)        { <span class="ruby-operator">|</span><span class="ruby-identifier">port</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">port</span> = <span class="ruby-identifier">port</span>; }
       <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">'--root ROOT'</span>)        { <span class="ruby-operator">|</span><span class="ruby-identifier">root</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">root</span> = <span class="ruby-identifier">root</span>; }
+      <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">'--timeout TIMEOUT'</span>)        { <span class="ruby-operator">|</span><span class="ruby-identifier">timeout</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">timeout</span> = <span class="ruby-identifier">timeout</span>; }
             
       <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">parse!</span>(<span class="ruby-ivar">@arguments</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span>
       
@@ -530,7 +532,7 @@ Send data back to the client
             onclick="toggleCode('M000005-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000005-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 167</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 166</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">response</span>(<span class="ruby-identifier">msg</span>)
       <span class="ruby-identifier">session</span> = <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>]
       <span class="ruby-identifier">session</span>.<span class="ruby-identifier">print</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">LNBR</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">session</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">session</span>.<span class="ruby-identifier">closed?</span>
@@ -603,7 +605,7 @@ Returns current <a href="CustomFTPServer.html#M000007">thread</a>
             onclick="toggleCode('M000007-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000007-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 193</span>
+<span class="ruby-comment cmt"># File lib/custom-ftp-server.rb, line 192</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">thread</span>; <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
