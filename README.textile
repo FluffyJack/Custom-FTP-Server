@@ -14,7 +14,6 @@ h2. To Do List
 
 * Need to work out the difference between passive and active and then implement both
 * Has issues with larger files (over 1024 bytes)
-* Error on connection timeout
 * Create all PFC 959 commands
 * Add all commands from RFC 959 extensions RFC 2228, RFC 3659, and RFC 4217
 * Test on a server

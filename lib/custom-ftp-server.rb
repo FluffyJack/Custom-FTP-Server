@@ -32,7 +32,6 @@ class CustomFTPServer
   # 
   #   * Need to work out the difference between passive and active and then implement both
   #   * Has issues with larger files (over 1024 bytes)
-  #   * Error on connection timeout
   #   * Create all RFC 959 commands
   #   * Add all commands from RFC 959 extensions RFC 2228, RFC 3659, and RFC 4217
   #   * Test on a server
@@ -175,14 +174,16 @@ class CustomFTPServer
       Thread.new do
         loop do
           @threads.delete_if do |t|
-            if Time.now - t[:stamp] > 400
-              t[:session].close
+            if ((Time.now.to_i - t[:stamp].to_i) > 5)
+              t[:session].print "421 Connection Timed Out - open a new connection" << LNBR
               t.kill
-              debug "Killed inactive connection."
+              t = nil
               true
             end
           end
-          sleep 20
+          puts "Open Threads in @threads: " + @threads.inspect
+          puts "Open Threads: " + Thread.list.inspect
+          sleep 2
         end
       end    
     end
