@@ -1,11 +1,10 @@
-#!/usr/bin/env ruby 
-
 # == Synopsis 
 #   Custom FTP Server is a command line based Ruby FTP Server solution that allows you to customise how it reacts to FTP commands
 #
 # == Examples
 #   ruby init.rb
 #   ruby init.rb --host 127.0.0.1 --port 21
+#   ruby init.rb --root "/root/websites/website_root"
 #
 # == Usage 
 #   cd /your/custom-ftp-server/folder
@@ -15,6 +14,7 @@
 #   -v, --version       Display the version, then exit
 #   --port              Set a port to use
 #   --host              Set a host to use
+#   --root              Set a root directory to use
 #
 # == Author
 #   FluffyJack - Jack Dean Watson-Hamblin

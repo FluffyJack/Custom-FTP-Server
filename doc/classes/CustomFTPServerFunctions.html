@@ -122,7 +122,7 @@
           <td class="context-item-value">&quot;\r\n&quot;</td>
           <td width="3em">&nbsp;</td>
           <td class="context-item-desc">
-ftp says this is a new line
+Standard newline code
 
 </td>
         </tr>
@@ -132,7 +132,7 @@ ftp says this is a new line
           <td class="context-item-value">%w[user quit port type mode stru noop syst pass list nlst pwd]</td>
           <td width="3em">&nbsp;</td>
           <td class="context-item-desc">
-Supported Commands
+Supported Non-File Commands
 
 </td>
         </tr>
@@ -142,7 +142,7 @@ Supported Commands
           <td class="context-item-value">%w[cwd dele mkd rmd rnfr rnto retr stor]</td>
           <td width="3em">&nbsp;</td>
           <td class="context-item-desc">
-Supported Commands - With Pathnames in msg
+Supported File Commands
 
 </td>
         </tr>
@@ -164,20 +164,25 @@ Supported Commands - With Pathnames in msg
 
         <div class="method-heading">
           <a href="#M000028" class="method-signature">
-          <span class="method-name">cwd</span><span class="method-args">(msg)</span>
+          <span class="method-name">cwd</span><span class="method-args">(msg) {|directory| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-CWD - msg = pathname
-</p>
+          <h2>CWD</h2>
+<pre>
+  Changes the current working directory to the one asked for
+
+  This will return:
+  [Successful]  250 Directory changed to #{virtual_folder(Dir.pwd)}
+  [Failed] 550 Directory not found
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000028-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000028-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 105</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cwd</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 196</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cwd</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: directory</span>
     <span class="ruby-keyword kw">begin</span>
       <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-identifier">msg</span>)
     <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>
@@ -201,14 +206,18 @@ CWD - msg = pathname
         </div>
       
         <div class="method-description">
-          <p>
-DELE - msg = pathname
-</p>
+          <h2>DELE</h2>
+<pre>
+  Deletes a file
+
+  This will return:
+  [Successful]  200 OK, deleted #{virtual_folder(msg)}
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000029-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000029-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 116</span>
+<span class="ruby-comment cmt"># File lib/functions.rb, line 213</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">dele</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-identifier">rmd</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -220,20 +229,25 @@ DELE - msg = pathname
 
         <div class="method-heading">
           <a href="#M000025" class="method-signature">
-          <span class="method-name">list</span><span class="method-args">(msg)</span>
+          <span class="method-name">list</span><span class="method-args">(msg) {|nil| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-LIST - msg = nil
-</p>
+          <h2>LIST</h2>
+<pre>
+  Asks for a list of files in the current working directory to be sent to the user client
+
+  This will return:
+  [On Start]    125 Opening ASCII mode data connection for file list
+  [On Complete] 226 Transfer complete
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000025-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000025-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 88</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">list</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 166</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">list</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: nil</span>
     <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;125 Opening ASCII mode data connection for file list&quot;</span>
     <span class="ruby-identifier">send_data</span>(<span class="ruby-value">`ls -l -A`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">join</span>(<span class="ruby-constant">LNBR</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">LNBR</span>)
     <span class="ruby-value str">&quot;226 Transfer complete&quot;</span>
@@ -248,20 +262,24 @@ LIST - msg = nil
 
         <div class="method-heading">
           <a href="#M000031" class="method-signature">
-          <span class="method-name">mkd</span><span class="method-args">(msg)</span>
+          <span class="method-name">mkd</span><span class="method-args">(msg) {|directory| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-MKD - msg = pathname
-</p>
+          <h2>MKD</h2>
+<pre>
+  Creates a directory
+
+  This will return:
+  [Successful]  257 #{virtual_folder(msg)} created
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000031-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000031-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 129</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mkd</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 238</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mkd</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: directory</span>
     <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">msg</span>)
     <span class="ruby-node">&quot;257 #{virtual_folder(msg)} created&quot;</span>
   <span class="ruby-keyword kw">end</span>
@@ -280,14 +298,18 @@ MKD - msg = pathname
         </div>
       
         <div class="method-description">
-          <p>
-MODE - msg = <a href="CustomFTPServerFunctions.html#M000019">mode</a>-code
-</p>
+          <h2>MODE</h2>
+<pre>
+  Changes transfer mode, currently only accepts STREAM
+
+  This will return:
+  [Always]   202 Only accepts stream
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000019-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000019-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 58</span>
+<span class="ruby-comment cmt"># File lib/functions.rb, line 97</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mode</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-value str">&quot;202 Only accepts stream&quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -299,20 +321,21 @@ MODE - msg = <a href="CustomFTPServerFunctions.html#M000019">mode</a>-code
 
         <div class="method-heading">
           <a href="#M000026" class="method-signature">
-          <span class="method-name">nlst</span><span class="method-args">(msg)</span>
+          <span class="method-name">nlst</span><span class="method-args">(msg) {|nil| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-NLST - msg = nil
-</p>
+          <h2>NLST</h2>
+<pre>
+  Sends a list of all file names in the currect working directory
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000026-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000026-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 95</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">nlst</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 176</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">nlst</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: nil</span>
     <span class="ruby-constant">Dir</span>[<span class="ruby-value str">&quot;*&quot;</span>].<span class="ruby-identifier">join</span> <span class="ruby-value str">&quot; &quot;</span>   
   <span class="ruby-keyword kw">end</span>
 </pre>
@@ -330,14 +353,18 @@ NLST - msg = nil
         </div>
       
         <div class="method-description">
-          <p>
-NOOP - msg = nil
-</p>
+          <h2>NOOP</h2>
+<pre>
+  Wants a 200 reply
+
+  This will return:
+  [Always]    200
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000023-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000023-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 82</span>
+<span class="ruby-comment cmt"># File lib/functions.rb, line 147</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">noop</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-value str">&quot;200 &quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -349,20 +376,25 @@ NOOP - msg = nil
 
         <div class="method-heading">
           <a href="#M000015" class="method-signature">
-          <span class="method-name">pass</span><span class="method-args">(msg)</span>
+          <span class="method-name">pass</span><span class="method-args">(msg) {|password| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-PASS - msg = password
-</p>
+          <h2>PASS</h2>
+<pre>
+  This gets a password and checks if it is the specified users password
+
+  This will return:
+  [Sucessful]   230 Logged in successfully
+  [Failed]      530 Password is incorrect
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000015-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000015-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 20</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pass</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 34</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pass</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: password</span>
     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;530 Password is incorrect&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">'password'</span>
     <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:pass</span>] = <span class="ruby-identifier">msg</span>
     <span class="ruby-value str">&quot;230 Logged in successfully&quot;</span>
@@ -377,21 +409,24 @@ PASS - msg = password
 
         <div class="method-heading">
           <a href="#M000017" class="method-signature">
-          <span class="method-name">port</span><span class="method-args">(msg)</span>
+          <span class="method-name">port</span><span class="method-args">(msg) {|socket address| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-PORT - msg = new <a href="CustomFTPServerFunctions.html#M000017">port</a>
-details
-</p>
+          <h2>PORT</h2>
+<pre>
+  Opens up a data-connection port to use for data transport
+
+  This will return:
+  [Sucessful]   200 Passive connection established (#{port})
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000017-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000017-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 34</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">port</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 60</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">port</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: socket address</span>
     <span class="ruby-identifier">nums</span> = <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">','</span>)
     <span class="ruby-identifier">port</span> = <span class="ruby-identifier">nums</span>[<span class="ruby-value">4</span>].<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-value">256</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">nums</span>[<span class="ruby-value">5</span>].<span class="ruby-identifier">to_i</span>
     <span class="ruby-identifier">host</span> = <span class="ruby-identifier">nums</span>[<span class="ruby-value">0</span><span class="ruby-operator">..</span><span class="ruby-value">3</span>].<span class="ruby-identifier">join</span>(<span class="ruby-value str">'.'</span>)
@@ -412,20 +447,21 @@ details
 
         <div class="method-heading">
           <a href="#M000027" class="method-signature">
-          <span class="method-name">pwd</span><span class="method-args">(msg)</span>
+          <span class="method-name">pwd</span><span class="method-args">(msg) {|nil| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-PWD - msg = nil
-</p>
+          <h2>PWD</h2>
+<pre>
+  Sends the user client the current working directory
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000027-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000027-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 100</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pwd</span>(<span class="ruby-identifier">msg</span>)    
+<span class="ruby-comment cmt"># File lib/functions.rb, line 184</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pwd</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: nil </span>
     <span class="ruby-node">%[257 &quot;#{virtual_folder(Dir.pwd)}&quot; is the current directory]</span>
   <span class="ruby-keyword kw">end</span>
 </pre>
@@ -438,20 +474,24 @@ PWD - msg = nil
 
         <div class="method-heading">
           <a href="#M000016" class="method-signature">
-          <span class="method-name">quit</span><span class="method-args">(msg)</span>
+          <span class="method-name">quit</span><span class="method-args">(msg) {|nil| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-QUIT - msg = nil
-</p>
+          <h2>QUIT</h2>
+<pre>
+  Destroys connections and ends the thread
+
+  This will return:
+  [Sucessful]   221 Logged out successfully
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000016-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000016-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 27</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">quit</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 47</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">quit</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: nil</span>
     <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>].<span class="ruby-identifier">close</span>
     <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:session</span>] = <span class="ruby-keyword kw">nil</span>
     <span class="ruby-value str">&quot;221 Logged out successfully&quot;</span>
@@ -466,20 +506,25 @@ QUIT - msg = nil
 
         <div class="method-heading">
           <a href="#M000021" class="method-signature">
-          <span class="method-name">retr</span><span class="method-args">(msg)</span>
+          <span class="method-name">retr</span><span class="method-args">(msg) {|mode| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-RETR - msg = pathname
-</p>
+          <h2>RETR</h2>
+<pre>
+  Sends a file to the user client
+
+  This will return:
+  [On Start]    125 Data transfer starting
+  [On Complete] 226 Closing data connection, sent #{bytes} bytes
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000021-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000021-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 64</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">retr</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 116</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">retr</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: mode</span>
     <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;125 Data transfer starting&quot;</span>
     <span class="ruby-identifier">bytes</span> = <span class="ruby-identifier">send_data</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">msg</span>, <span class="ruby-value str">'r'</span>))
     <span class="ruby-node">&quot;226 Closing data connection, sent #{bytes} bytes&quot;</span>      
@@ -494,20 +539,24 @@ RETR - msg = pathname
 
         <div class="method-heading">
           <a href="#M000030" class="method-signature">
-          <span class="method-name">rmd</span><span class="method-args">(msg)</span>
+          <span class="method-name">rmd</span><span class="method-args">(msg) {|directory or file| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-RMD - msg = pathname (also runs DELE code)
-</p>
+          <h2>RMD</h2>
+<pre>
+  Deletes a directory
+
+  This will return:
+  [Successful]  200 OK, deleted #{virtual_folder(msg)}
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000030-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000030-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 119</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rmd</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 222</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rmd</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: directory or file</span>
     <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span> <span class="ruby-identifier">msg</span>
       <span class="ruby-constant">Dir</span><span class="ruby-operator">::</span><span class="ruby-identifier">delete</span> <span class="ruby-identifier">msg</span>
     <span class="ruby-keyword kw">elsif</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">file?</span> <span class="ruby-identifier">msg</span>
@@ -525,20 +574,24 @@ RMD - msg = pathname (also runs DELE code)
 
         <div class="method-heading">
           <a href="#M000032" class="method-signature">
-          <span class="method-name">rnfr</span><span class="method-args">(msg)</span>
+          <span class="method-name">rnfr</span><span class="method-args">(msg) {|file or directory| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-RNFR - msg = pathname
-</p>
+          <h2>RNFR</h2>
+<pre>
+  Part 1 of renaming a file or folder, stores the file to be renamed in thread[:rnfr]
+
+  This will return:
+  [Successful]  350 Awating RNTO for file
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000032-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000032-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 135</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rnfr</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 250</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rnfr</span>(<span class="ruby-identifier">msg</span>) <span class="ruby-comment cmt">#   :yields: file or directory</span>
     <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:rnfr</span>] = <span class="ruby-identifier">msg</span>
     <span class="ruby-value str">&quot;350 Awating RNTO for file&quot;</span>
   <span class="ruby-keyword kw">end</span>
@@ -552,20 +605,24 @@ RNFR - msg = pathname
 
         <div class="method-heading">
           <a href="#M000033" class="method-signature">
-          <span class="method-name">rnto</span><span class="method-args">(msg)</span>
+          <span class="method-name">rnto</span><span class="method-args">(msg) {|file or directory| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-RNTO - msg = new pathname
-</p>
+          <h2>RNTO</h2>
+<pre>
+  Part 2 of renaming a file or folder, renames file or directory thread[:rnfr] to specified name
+
+  This will return:
+  [Successful]  250 File renamed to #{virtual_folder(msg)}
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000033-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000033-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 141</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rnto</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 262</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rnto</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: file or directory</span>
     <span class="ruby-constant">File</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:rnfr</span>], <span class="ruby-identifier">msg</span>)
     <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:rnfr</span>] = <span class="ruby-keyword kw">nil</span>
     <span class="ruby-node">&quot;250 File renamed to #{virtual_folder(msg)}&quot;</span>
@@ -580,27 +637,32 @@ RNTO - msg = new pathname
 
         <div class="method-heading">
           <a href="#M000022" class="method-signature">
-          <span class="method-name">stor</span><span class="method-args">(msg)</span>
+          <span class="method-name">stor</span><span class="method-args">(msg) {|mode| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-STOR - msg = pathname
-</p>
+          <h2>STOR</h2>
+<pre>
+  Receives a file from the user client
+
+  This will return:
+  [On Start]    125 Data transfer starting
+  [On Complete] 226 Closing data connection, sent #{bytes} bytes
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000022-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000022-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 71</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stor</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 130</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stor</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: mode</span>
     <span class="ruby-identifier">file</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">msg</span>, <span class="ruby-value str">'w'</span>)
     <span class="ruby-identifier">response</span> <span class="ruby-value str">&quot;125 Data transfer starting&quot;</span>
     <span class="ruby-identifier">bytes</span> = <span class="ruby-value">0</span>
     <span class="ruby-identifier">data</span> = <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:datasocket</span>].<span class="ruby-identifier">recv</span>(<span class="ruby-value">1024</span>)
     <span class="ruby-identifier">bytes</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">file</span>.<span class="ruby-identifier">write</span> <span class="ruby-identifier">data</span>
     <span class="ruby-identifier">file</span>.<span class="ruby-identifier">close</span>
-    <span class="ruby-node">&quot;226 Files recieved - total bytes #{bytes}&quot;</span>
+    <span class="ruby-node">&quot;226 Closing data connection, sent #{bytes} bytes&quot;</span>
   <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -617,14 +679,18 @@ STOR - msg = pathname
         </div>
       
         <div class="method-description">
-          <p>
-STRU - msg = structure code
-</p>
+          <h2>STRU</h2>
+<pre>
+  Changes transfer structure, currently only accepts FILE
+
+  This will return:
+  [Always]   202 Only accepts file
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000020-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000020-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 61</span>
+<span class="ruby-comment cmt"># File lib/functions.rb, line 106</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stru</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-value str">&quot;202 Only accepts file&quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -641,14 +707,18 @@ STRU - msg = structure code
         </div>
       
         <div class="method-description">
-          <p>
-SYST - msg = nil
-</p>
+          <h2>SYST</h2>
+<pre>
+  Asks for server description
+
+  This will return:
+  [Always]    215 FluffyJack's Custom FTP Server v#{VERSION}
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000024-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000024-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 85</span>
+<span class="ruby-comment cmt"># File lib/functions.rb, line 156</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">syst</span>(<span class="ruby-identifier">msg</span>); <span class="ruby-node">&quot;215 FluffyJack's Custom FTP Server v#{VERSION}&quot;</span>; <span class="ruby-keyword kw">end</span>
 </pre>
           </div>
@@ -660,21 +730,25 @@ SYST - msg = nil
 
         <div class="method-heading">
           <a href="#M000018" class="method-signature">
-          <span class="method-name">type</span><span class="method-args">(msg)</span>
+          <span class="method-name">type</span><span class="method-args">(msg) {|type| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-TYPE - msg = <a href="CustomFTPServerFunctions.html#M000018">type</a> (A =
-ascii, I = binary)
-</p>
+          <h2>TYPE</h2>
+<pre>
+  Changes transfer data type
+
+  This will return:
+  [Sucessful - ASCII]   200 Type set to ASCII
+  [Succesful - Binary]  200 Type set to binary
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000018-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000018-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 47</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">type</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 80</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">type</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: type</span>
     <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">msg</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'A'</span>)
       <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:mode</span>] = <span class="ruby-identifier">:ascii</span>
       <span class="ruby-value str">&quot;200 Type set to ASCII&quot;</span>
@@ -693,20 +767,25 @@ ascii, I = binary)
 
         <div class="method-heading">
           <a href="#M000014" class="method-signature">
-          <span class="method-name">user</span><span class="method-args">(msg)</span>
+          <span class="method-name">user</span><span class="method-args">(msg) {|username| ...}</span>
           </a>
         </div>
       
         <div class="method-description">
-          <p>
-USER - msg = username
-</p>
+          <h2>USER</h2>
+<pre>
+  This gets a user name and checks if it is a current user
+
+  This will return:
+  [Sucessful]   331 Username is correct, still need a password
+  [Failed]      530 Username is incorrect
+</pre>
           <p><a class="source-toggle" href="#"
             onclick="toggleCode('M000014-source');return false;">[Source]</a></p>
           <div class="method-source-code" id="M000014-source">
 <pre>
-<span class="ruby-comment cmt"># File lib/functions.rb, line 13</span>
-  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">user</span>(<span class="ruby-identifier">msg</span>)
+<span class="ruby-comment cmt"># File lib/functions.rb, line 20</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">user</span>(<span class="ruby-identifier">msg</span>)  <span class="ruby-comment cmt">#   :yields: username</span>
     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;530 Username is incorrect&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">'fluffyjack'</span>
     <span class="ruby-identifier">thread</span>[<span class="ruby-identifier">:user</span>] = <span class="ruby-identifier">msg</span>
     <span class="ruby-value str">&quot;331 Username is correct, still need a password&quot;</span>

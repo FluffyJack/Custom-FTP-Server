@@ -1,37 +1,63 @@
 module CustomFTPServerFunctions
   
-  # ftp says this is a new line
+  # Standard newline code
   LNBR = "\r\n"
   
-  # Supported Commands
+  # Supported Non-File Commands
   COMMANDS = %w[user quit port type mode stru noop syst pass list nlst pwd]
   
-  # Supported Commands - With Pathnames in msg
+  # Supported File Commands
   PATHCOMMANDS = %w[cwd dele mkd rmd rnfr rnto retr stor]
   
-  # USER - msg = username
-  def user(msg)
+  # == USER
+  #   
+  #   This gets a user name and checks if it is a current user
+  #   
+  #   This will return:
+  #   [Sucessful]   331 Username is correct, still need a password
+  #   [Failed]      530 Username is incorrect
+  #
+  def user(msg)  #   :yields: username
     return "530 Username is incorrect" if msg != 'fluffyjack'
     thread[:user] = msg
     "331 Username is correct, still need a password"
   end
   
-  # PASS - msg = password
-  def pass(msg)
+  # == PASS
+  #   
+  #   This gets a password and checks if it is the specified users password
+  #   
+  #   This will return:
+  #   [Sucessful]   230 Logged in successfully
+  #   [Failed]      530 Password is incorrect
+  #
+  def pass(msg)  #   :yields: password
     return "530 Password is incorrect" if msg != 'password'
     thread[:pass] = msg
     "230 Logged in successfully"
   end
   
-  # QUIT - msg = nil
-  def quit(msg)
+  # == QUIT
+  #   
+  #   Destroys connections and ends the thread
+  #   
+  #   This will return:
+  #   [Sucessful]   221 Logged out successfully
+  #
+  def quit(msg)  #   :yields: nil
     thread[:session].close
     thread[:session] = nil
     "221 Logged out successfully"
   end
   
-  # PORT - msg = new port details
-  def port(msg)
+  # == PORT
+  #   
+  #   Opens up a data-connection port to use for data transport
+  #   
+  #   This will return:
+  #   [Sucessful]   200 Passive connection established (#{port})
+  #
+  def port(msg)  #   :yields: socket address
     nums = msg.split(',')
     port = nums[4].to_i * 256 + nums[5].to_i
     host = nums[0..3].join('.')
@@ -43,8 +69,15 @@ module CustomFTPServerFunctions
     "200 Passive connection established (#{port})"
   end
   
-  # TYPE - msg = type (A = ascii, I = binary)
-  def type(msg)
+  # == TYPE
+  #   
+  #   Changes transfer data type
+  #   
+  #   This will return:
+  #   [Sucessful - ASCII]   200 Type set to ASCII
+  #   [Succesful - Binary]  200 Type set to binary
+  #
+  def type(msg)  #   :yields: type
     if (msg == 'A')
       thread[:mode] = :ascii
       "200 Type set to ASCII"
@@ -54,55 +87,113 @@ module CustomFTPServerFunctions
     end
   end
   
-  # MODE - msg = mode-code
-  def mode(msg); "202 Only accepts stream"; end
+  # == MODE
+  #   
+  #   Changes transfer mode, currently only accepts STREAM
+  #   
+  #   This will return:
+  #   [Always]   202 Only accepts stream
+  #
+  def mode(msg); "202 Only accepts stream"; end  #   :yields: mode
   
-  # STRU - msg = structure code
-  def stru(msg); "202 Only accepts file"; end
+  # == STRU
+  #   
+  #   Changes transfer structure, currently only accepts FILE
+  #   
+  #   This will return:
+  #   [Always]   202 Only accepts file
+  #
+  def stru(msg); "202 Only accepts file"; end  #   :yields: structure
   
-  # RETR - msg = pathname
-  def retr(msg)
+  # == RETR
+  #   
+  #   Sends a file to the user client
+  #   
+  #   This will return:
+  #   [On Start]    125 Data transfer starting
+  #   [On Complete] 226 Closing data connection, sent #{bytes} bytes
+  #
+  def retr(msg)  #   :yields: mode
     response "125 Data transfer starting"
     bytes = send_data(File.new(msg, 'r'))
     "226 Closing data connection, sent #{bytes} bytes"      
   end
   
-  # STOR - msg = pathname
-  def stor(msg)
+  # == STOR
+  #   
+  #   Receives a file from the user client
+  #   
+  #   This will return:
+  #   [On Start]    125 Data transfer starting
+  #   [On Complete] 226 Closing data connection, sent #{bytes} bytes
+  #
+  def stor(msg)  #   :yields: mode
     file = File.open(msg, 'w')
     response "125 Data transfer starting"
     bytes = 0
     data = thread[:datasocket].recv(1024)
     bytes += file.write data
     file.close
-    "226 Files recieved - total bytes #{bytes}"
+    "226 Closing data connection, sent #{bytes} bytes"
   end
   
-  # NOOP - msg = nil
-  def noop(msg); "200 "; end
+  # == NOOP
+  #   
+  #   Wants a 200 reply
+  #   
+  #   This will return:
+  #   [Always]    200
+  #
+  def noop(msg); "200 "; end  #   :yields: nil
   
-  # SYST - msg = nil
-  def syst(msg); "215 FluffyJack's Custom FTP Server v#{VERSION}"; end
+  # == SYST
+  #   
+  #   Asks for server description
+  #   
+  #   This will return:
+  #   [Always]    215 FluffyJack's Custom FTP Server v#{VERSION}
+  #
+  def syst(msg); "215 FluffyJack's Custom FTP Server v#{VERSION}"; end  #   :yields: nil
     
-  # LIST - msg = nil
-  def list(msg)
+  # == LIST
+  #   
+  #   Asks for a list of files in the current working directory to be sent to the user client
+  #   
+  #   This will return:
+  #   [On Start]    125 Opening ASCII mode data connection for file list
+  #   [On Complete] 226 Transfer complete
+  #
+  def list(msg)  #   :yields: nil
     response "125 Opening ASCII mode data connection for file list"
     send_data(`ls -l -A`.split("\n").join(LNBR) << LNBR)
     "226 Transfer complete"
   end
 
-  # NLST - msg = nil
-  def nlst(msg)
+  # == NLST
+  #   
+  #   Sends a list of all file names in the currect working directory
+  #
+  def nlst(msg)  #   :yields: nil
     Dir["*"].join " "   
   end
   
-  # PWD - msg = nil
-  def pwd(msg)    
+  # == PWD
+  #   
+  #   Sends the user client the current working directory
+  #
+  def pwd(msg)  #   :yields: nil 
     %[257 "#{virtual_folder(Dir.pwd)}" is the current directory]
   end
   
-  # CWD - msg = pathname
-  def cwd(msg)
+  # == CWD
+  #   
+  #   Changes the current working directory to the one asked for
+  #   
+  #   This will return:
+  #   [Successful]  250 Directory changed to #{virtual_folder(Dir.pwd)}
+  #   [Failed] 550 Directory not found
+  #
+  def cwd(msg)  #   :yields: directory
     begin
       Dir.chdir(msg)
     rescue Errno::ENOENT
@@ -112,11 +203,23 @@ module CustomFTPServerFunctions
     end
   end
   
-  # DELE - msg = pathname
-  def dele(msg); rmd(msg); end
+  # == DELE
+  #   
+  #   Deletes a file
+  #   
+  #   This will return:
+  #   [Successful]  200 OK, deleted #{virtual_folder(msg)}
+  #
+  def dele(msg); rmd(msg); end  #   :yields: file
 
-  # RMD - msg = pathname (also runs DELE code)
-  def rmd(msg)
+  # == RMD
+  #   
+  #   Deletes a directory
+  #   
+  #   This will return:
+  #   [Successful]  200 OK, deleted #{virtual_folder(msg)}
+  #
+  def rmd(msg)  #   :yields: directory or file
     if File.directory? msg
       Dir::delete msg
     elsif File.file? msg
@@ -125,20 +228,38 @@ module CustomFTPServerFunctions
     "200 OK, deleted #{virtual_folder(msg)}"
   end
   
-  # MKD - msg = pathname
-  def mkd(msg)
+  # == MKD
+  #   
+  #   Creates a directory
+  #   
+  #   This will return:
+  #   [Successful]  257 #{virtual_folder(msg)} created
+  #
+  def mkd(msg)  #   :yields: directory
     Dir.mkdir(msg)
     "257 #{virtual_folder(msg)} created"
   end
   
-  # RNFR - msg = pathname
-  def rnfr(msg)
+  # == RNFR
+  #   
+  #   Part 1 of renaming a file or folder, stores the file to be renamed in thread[:rnfr]
+  #   
+  #   This will return:
+  #   [Successful]  350 Awating RNTO for file
+  #
+  def rnfr(msg) #   :yields: file or directory
     thread[:rnfr] = msg
     "350 Awating RNTO for file"
   end
   
-  # RNTO - msg = new pathname
-  def rnto(msg)
+  # == RNTO
+  #   
+  #   Part 2 of renaming a file or folder, renames file or directory thread[:rnfr] to specified name
+  #   
+  #   This will return:
+  #   [Successful]  250 File renamed to #{virtual_folder(msg)}
+  #
+  def rnto(msg)  #   :yields: file or directory
     File.rename(thread[:rnfr], msg)
     thread[:rnfr] = nil
     "250 File renamed to #{virtual_folder(msg)}"

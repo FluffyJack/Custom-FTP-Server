@@ -3,9 +3,52 @@
 Thread.abort_on_exception = true
 
 class CustomFTPServer
-  VERSION = '0.1.1'
+  
+  # == The main class
+  #   This is the class that actually runs the server process that is started in init.rb
+  #   Usually you won't have to customise this file, and it's recommended that you don't.
+  # 
+  # == Customising the server
+  #   This is how you customise the server, the core functions, and add extra functions to the core
+  #   This is *NOT* how you customise FTP commands and please don't try to follow these steps to cusomise those
+  #   
+  #   1. Create a new file to put those functions in and add that file to the array at the top of custom-ftp-server.rb
+  #   2. In that file you created, make a new module with whatever name you want and add your functions to it
+  #   3. Include that module at the end of this class (Class CustomFTPServer)
+  #   
+  # == Getting your new functions into the core library
+  #   If you think you've got something that could really contribute to the core of this library, send me a message on github telling me what you think and I'll have a look at it.
+  #   
+  # == Developers Info
+  #   If your wanting to make some changes that you think would be good, or have found a bug you think you can fix, please fork my git on github and make your changes and send me a pull request.
+  #   If you have any questions about what your doing, send me a message on github and I'll help you out.
+  
+  #--
+  #  
+  # == Internal Notes (not tracked by RDoc)
+  #   If you want to take notes on something, put it in here, e.g. for To Do lists
+  # 
+  # == TODO
+  # 
+  #   * Need to work out the difference between passive and active and then implement both
+  #   * Has issues with larger files (over 1024 bytes)
+  #   * Error on connection timeout
+  #   * Create all RFC 959 commands
+  #   * Add all commands from RFC 959 extensions RFC 2228, RFC 3659, and RFC 4217
+  #   * Test on a server
+  #   * Test with other FTP clients
+  #   
+  #++
+  
+  
+  VERSION = '0.1.4'
 
-  # Parse Options, Open a server, and look out for shut down
+  # == Creates a CustomFTPServer
+  #   This will create a new CustomFTPServer Object and will make start a TCPServer
+  #   It does not start a loop for listening though, this must be done using CustomFTPServer.run()
+  #   
+  #   It sets up some default options, and calls the functions needed to set the chosen ones and will move to the "root" directory chosen
+  #   
   def initialize(arguments)
     @arguments = arguments
     
@@ -37,7 +80,9 @@ class CustomFTPServer
     
   end
 
-  # The server process
+  # == The server loop
+  #   This functions starts up the loop to accept incomming connections and threads, it also calls a function that starts up thread management that will make sure threads don't just sit open when they're not being used.
+  #   
   def run
     
     # Explain how to shut down server
@@ -91,7 +136,7 @@ class CustomFTPServer
       end
     end
     
-    # call commands and return the response to the client
+    # Call commands and return the response to the client
     def handler(request)
       thread[:stamp] = Time.now
       return if request.nil? or request.to_s == ''
@@ -125,7 +170,7 @@ class CustomFTPServer
       session.print "500 Server Error" if msg.nil?
     end
   
-    # periodically kill inactive connections
+    # Periodically kill inactive connections
     def kill_dead_connections
       Thread.new do
         loop do
@@ -145,7 +190,7 @@ class CustomFTPServer
     # Returns current thread
     def thread; Thread.current; end
     
-    # command not understood
+    # Command not understood
     def bad_command(name, *params)
       "502 Command not implemented"
     end
@@ -170,7 +215,7 @@ class CustomFTPServer
       puts "#{File.basename(__FILE__)} version #{VERSION}"
     end
     
-    # send data over a connection
+    # Send data over a connection
     def send_data(data)
       bytes = 0
       begin
