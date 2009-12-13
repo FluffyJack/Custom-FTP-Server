@@ -4,7 +4,10 @@ module CustomFTPServerFunctions
   LNBR = "\r\n"
   
   # Supported Commands
-  COMMANDS = %w[user quit port type mode stru retr stor noop syst pass list nlst pwd cwd dele rmd mkd rnfr rnto]
+  COMMANDS = %w[user quit port type mode stru noop syst pass list nlst pwd]
+  
+  # Supported Commands - With Pathnames in msg
+  PATHCOMMANDS = %w[cwd dele mkd rmd rnfr rnto retr stor]
   
   # USER - msg = username
   def user(msg)
@@ -66,12 +69,12 @@ module CustomFTPServerFunctions
   
   # STOR - msg = pathname
   def stor(msg)
-    file = File.new(msg, 'w')
+    file = File.open(msg, 'w')
     response "125 Data transfer starting"
     bytes = 0
-    data = thread[:datasocket].recvfrom(1024)
-    bytes += data.length
-    file.write data
+    data = thread[:datasocket].recv(1024)
+    bytes += file.write data
+    file.close
     "226 Files recieved - total bytes #{bytes}"
   end
   
@@ -84,17 +87,7 @@ module CustomFTPServerFunctions
   # LIST - msg = nil
   def list(msg)
     response "125 Opening ASCII mode data connection for file list"
-    
-    # Dir["*"].each do |entry|
-    #   file_data[] = ""
-    #   
-    #   data_lines[] = file_data.join(' ')
-    # end
-    # 
-    # send_data(data_lines.join(LNBR) << LNBR)
-    
-    send_data(`ls -l`.split("\n").join(LNBR) << LNBR)
-    
+    send_data(`ls -l -A`.split("\n").join(LNBR) << LNBR)
     "226 Transfer complete"
   end
 
@@ -104,8 +97,8 @@ module CustomFTPServerFunctions
   end
   
   # PWD - msg = nil
-  def pwd(msg)
-    %[257 "#{Dir.pwd}" is the current directory]
+  def pwd(msg)    
+    %[257 "#{virtual_folder(Dir.pwd)}" is the current directory]
   end
   
   # CWD - msg = pathname
@@ -115,7 +108,7 @@ module CustomFTPServerFunctions
     rescue Errno::ENOENT
       "550 Directory not found"
     else 
-      "250 Directory changed to " << Dir.pwd
+      "250 Directory changed to " << virtual_folder(Dir.pwd)
     end
   end
   
@@ -129,13 +122,13 @@ module CustomFTPServerFunctions
     elsif File.file? msg
       File::delete msg
     end
-    "200 OK, deleted #{msg}"
+    "200 OK, deleted #{virtual_folder(msg)}"
   end
   
   # MKD - msg = pathname
   def mkd(msg)
     Dir.mkdir(msg)
-    "257 #{msg} created"
+    "257 #{virtual_folder(msg)} created"
   end
   
   # RNFR - msg = pathname
@@ -148,7 +141,7 @@ module CustomFTPServerFunctions
   def rnto(msg)
     File.rename(thread[:rnfr], msg)
     thread[:rnfr] = nil
-    "250 File renamed to #{msg}"
+    "250 File renamed to #{virtual_folder(msg)}"
   end
   
 end

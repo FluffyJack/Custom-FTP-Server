@@ -13,6 +13,7 @@ class CustomFTPServer
     @options = OpenStruct.new
     @options.host = "127.0.0.1"
     @options.port = 21
+    @options.root = "/"
     
     # Set custom options
     parse_options
@@ -30,6 +31,9 @@ class CustomFTPServer
       puts "The port is already in use"
       exit(0)
     end
+    
+    # Choose a root
+    Dir.chdir(@options.root)
     
   end
 
@@ -99,6 +103,8 @@ class CustomFTPServer
         case command
           when *COMMANDS
             __send__ command, message
+          when *PATHCOMMANDS
+            __send__ command, real_folder(message)
           else
             bad_command command, message
         end
@@ -152,6 +158,7 @@ class CustomFTPServer
       opts.on('-v', '--version')    { output_version; exit 0 }
       opts.on('--host HOST')        { |host| @options.host = host; }
       opts.on('--port PORT')        { |port| @options.port = port; }
+      opts.on('--root ROOT')        { |root| @options.root = root; }
             
       opts.parse!(@arguments) rescue return false
       
@@ -185,6 +192,34 @@ class CustomFTPServer
         thread[:datasocket] = nil 
       end
       bytes
+    end
+    
+    # Create virtual folder string
+    def virtual_folder(folder)
+      f_array = (folder.sub(@options.root, "")).split("/")
+      if (f_array.length > 1)
+        f_array = f_array.delete_if { |c| c.empty? or c.nil? or c == "" }
+        return f_array.join("/")
+      elsif (f_array.length == 0)
+        return "/"
+      else
+        return folder
+      end
+    end
+    
+    # Find real folder
+    def real_folder(folder)
+      f_array = (Dir.pwd + "/" + folder).split("/")
+      if (folder[0,1] == "/")
+        return @options.root + folder
+      elsif (f_array.length > 1)
+        f_array = f_array.delete_if { |c| c.empty? or c.nil? or c == "" }
+        return "/" + f_array.join("/")
+      elsif (folder == "/")
+        return @options.root
+      else
+        return folder
+      end
     end
     
     # Functions Module
