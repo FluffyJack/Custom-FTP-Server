@@ -31,7 +31,7 @@ class CustomFTPServer
   # == TODO
   # 
   #   * Need to work out the difference between passive and active and then implement both
-  #   * Has issues with larger files (over 1024 bytes)
+  #   * Some FTP clients have issues with the file listing (E.g. Coda - you can only open a folder by double clicking it OR Dreamweaver - Filenames with spaces only show the part of the filename after the last space)
   #   * Create all RFC 959 commands
   #   * Add all commands from RFC 959 extensions RFC 2228, RFC 3659, and RFC 4217
   #   * Test on a server
@@ -174,8 +174,8 @@ class CustomFTPServer
       Thread.new do
         loop do
           @threads.delete_if do |t|
-            if ((Time.now.to_i - t[:stamp].to_i) > @options.timeout)
-              t[:session].print "421 Connection Timed Out - open a new connection" << LNBR
+            if ((Time.now.to_i - t[:stamp].to_i) > @options.timeout.to_i)
+              t[:session].print "421 Connection Timed Out - open a new connection" << LNBR unless t[:session].nil?
               t.kill
               t = nil
               true
@@ -183,7 +183,7 @@ class CustomFTPServer
           end
           puts "Open Threads in @threads: " + @threads.inspect
           puts "Open Threads: " + Thread.list.inspect
-          sleep (@options.timeout / 5)
+          sleep (@options.timeout.to_i / 5)
         end
       end    
     end

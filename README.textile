@@ -13,7 +13,7 @@ There is still some things left to do though.
 h2. To Do List
 
 * Need to work out the difference between passive and active and then implement both
-* Has issues with larger files (over 1024 bytes)
+* Some FTP clients have issues with the file listing (E.g. Coda - you can only open a folder by double clicking it OR Dreamweaver - Filenames with spaces only show the part of the filename after the last space)
 * Create all PFC 959 commands
 * Add all commands from RFC 959 extensions RFC 2228, RFC 3659, and RFC 4217
 * Test on a server

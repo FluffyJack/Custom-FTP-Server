@@ -131,10 +131,14 @@ module CustomFTPServerFunctions
     file = File.open(msg, 'w')
     response "125 Data transfer starting"
     bytes = 0
-    data = thread[:datasocket].recv(1024)
-    bytes += file.write data
-    file.close
-    "226 Closing data connection, sent #{bytes} bytes"
+    while (data = thread[:datasocket].recv(1024))
+      if (data.nil? or data.empty? or data == "")
+        file.close
+        return "226 Closing data connection, sent #{bytes} bytes"
+      else
+        bytes += file.write data
+      end
+    end
   end
   
   # == NOOP
@@ -165,7 +169,7 @@ module CustomFTPServerFunctions
   #
   def list(msg)  #   :yields: nil
     response "125 Opening ASCII mode data connection for file list"
-    send_data(`ls -l -A`.split("\n").join(LNBR) << LNBR)
+    send_data(`ls -l`.split("\n").join(LNBR) << LNBR)
     "226 Transfer complete"
   end
 
